@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Display Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/styles.css}">
+</head>
+<body>
+<nav class="navbar navbar-expand-lg" id="mainNavbar">
+    <div class="container">
+        <a class="navbar-brand" th:href="@{/}">
+            <img th:src="@{/images/worldcup.jpg}" alt="FIFA World Cup 2022"/>
+            <span>FIFA World Cup 2022</span>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
+                data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item"><a class="nav-link" th:href="@{/}"><i class="fas fa-home me-1"></i>Home</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/add}"><i class="fas fa-plus-circle me-1"></i>Add Team</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/edit}"><i class="fas fa-edit me-1"></i>Edit Team</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/delete}"><i class="fas fa-trash-alt me-1"></i>Delete Team</a></li>
+                <li class="nav-item"><a class="nav-link" th:href="@{/display}"><i class="fas fa-trophy me-1"></i>Results</a></li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<main class="container my-5">
+    <div class="content-card">
+        <h2>Results</h2>
+        <div class="table-wrapper">
+            <table class="modern-table">
+                <thead>
+                <tr>
+                    <th><i class="fas fa-hashtag me-2"></i>Flags</th>
+                    <th><i class="fas fa-flag me-2"></i>Team Name</th>
+                    <th><i class="fas fa-globe-americas me-2"></i>Continent</th>
+                    <th><i class="fas fa-star me-2"></i>Points</th>
+                    <th><i class="fas fa-futbol me-2"></i>Games</th>
+                    <th><i class="fas fa-trophy me-2"></i>Won</th>
+                    <th><i class="fas fa-handshake me-2"></i>Drawn</th>
+                    <th><i class="fas fa-times me-2"></i>Lost</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="result : ${results}">
+                    <td>
+                        <img th:src="@{'/images/flags/' + ${result.TeamName} + '.png'}"
+                             alt="${result.TeamName}"
+                             style="width: 28px; height: 21px; border-radius: 3px;"
+                             onerror="this.src='/images/flags/default.png'">
+                    </td>
+                    <td th:text="${result.TeamName}">Brazil</td>
+                    <td th:text="${result.Continent}">South America</td>
+                    <td th:text="${result.points}">17</td>
+                    <td th:text="${result.played}">8</td>
+                    <td><span class="stat-badge stat-won" th:text="${result.Won}">5</span></td>
+                    <td><span class="stat-badge stat-drawn" th:text="${result.Drawn}">2</span></td>
+                    <td><span class="stat-badge stat-lost" th:text="${result.Lost}">1</span></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</main>
+<footer>
+    <div class="footer-content">
+        <div class="container text-center">
+            <div class="footer-brand">FIFA World Cup 2022</div>
+            <p class="footer-text">
+                The ultimate destination for managing and tracking World Cup teams.
+                Experience football management reimagined.
+            </p>
+
+            <div class="social-links">
+                <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-linkedin-in"></i></a>
+                <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+            </div>
+
+            <div class="footer-divider"></div>
+
+            <p class="copyright">
+                &copy; 2025 2025 Mohammed Alsalmi and Hatem Al Bratimani. All rights reserved.
+                <span>Made with <i class="fas fa-heart"></i> for football fans</span>
+            </p>
+        </div>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script th:src="@{/js/main.js}"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        console.log("Starting API calls...");
+
+        document.querySelectorAll('tr').forEach(row => {
+            const idCell = row.cells[0];
+            if (!idCell || !idCell.textContent.trim()) return;
+
+            const id = idCell.textContent.trim();
+            console.log("Team ID:", id);
+
+            const team = {
+                TeamID: parseInt(id),
+                Won: parseInt(row.querySelector('.stat-won')?.textContent || 0),
+                Drawn: parseInt(row.querySelector('.stat-drawn')?.textContent || 0),
+                Lost: parseInt(row.querySelector('.stat-lost')?.textContent || 0)
+            };
+
+            fetch('/api/calculate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(team)
+            })
+                .then(res => {
+                    if (!res.ok) throw new Error("HTTP " + res.status);
+                    return res.json();
+                })
+                .then(data => {
+                    console.log("Success for ID", id, "→", data);
+                    const ptsCell = document.getElementById('pts-' + id);
+                    const playedCell = document.getElementById('played-' + id);
+                    if (ptsCell) ptsCell.textContent = data.points;
+                    if (playedCell) playedCell.textContent = data.played;
+                })
+                .catch(err => console.error("API failed for ID", id, ":", err));
+        });
+    });
+</script>
+</body>
+</html>
