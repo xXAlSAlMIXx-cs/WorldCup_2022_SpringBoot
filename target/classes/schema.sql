@@ -1,0 +1,8 @@
+CREATE TABLE IF NOT EXISTS Teams (
+    TeamID   BIGINT AUTO_INCREMENT PRIMARY KEY,
+    TeamName NVARCHAR(100) NOT NULL,
+    Continent NVARCHAR(50)  NOT NULL,
+    Won      INT DEFAULT 0,
+    Drawn    INT DEFAULT 0,
+    Lost     INT DEFAULT 0
+);
